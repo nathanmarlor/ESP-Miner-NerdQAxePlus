@@ -398,7 +398,8 @@
     "MANUAL": "Manuell",
     "AUTODETECT_POLARITY": "Automatische Polaritätserkennung",
     "AUTODETECT_RECOMMENDED": "Empfohlen",
-    "INVERT_POLARITY": "Polarität umkehren"
+    "INVERT_POLARITY": "Polarität umkehren",
+    "USE_FAN1_SETTINGS": "Lüfter 1 Einstellungen verwenden (verknüpft)"
   },
   "MISC": {
     "TITLE": "Verschiedene Einstellungen",

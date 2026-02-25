@@ -400,7 +400,8 @@
     "MANUAL": "Manual",
     "AUTODETECT_POLARITY": "Autodetect Fan Polarity",
     "AUTODETECT_RECOMMENDED": "Recommended",
-    "INVERT_POLARITY": "Invert Fan Polarity"
+    "INVERT_POLARITY": "Invert Fan Polarity",
+    "USE_FAN1_SETTINGS": "Use Fan 1 settings (linked)"
   },
   "MISC": {
     "TITLE": "Misc Settings",

@@ -2,7 +2,7 @@
 
 #include <pthread.h>
 #include "boards/board.h"
-#include "pid/PID_v1_bc.h"
+#include "fan_controller.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "esp_timer.h"
@@ -26,8 +26,6 @@ class PowerManagementTask {
     TimerHandle_t m_timer;
 
     char m_logBuffer[256]{};
-    uint16_t m_fanPerc = 0;
-    uint16_t m_fanRPM[2]{};
     float m_chipTempMax = 0;
     float m_vrTemp = 0;
     float m_vrTempInt = 0;
@@ -35,12 +33,11 @@ class PowerManagementTask {
     float m_power = 0;
     float m_current = 0;
     bool m_shutdown = false;
-    PID *m_pid = nullptr;
+    FanController m_fanController;
     Board* m_board = nullptr;
 
     void checkCoreVoltageChanged();
     void checkAsicFrequencyChanged();
-    void checkPidSettingsChanged();
     void checkVrFrequencyChanged();
     void readAndPublishPowerTelemetry();
     void applyAsicSettings();
@@ -88,10 +85,15 @@ class PowerManagementTask {
 
     uint16_t getFanRPM(int channel);
 
-    uint16_t getFanPerc()
+    uint16_t getFanPerc(int ch = 0)
     {
-        return m_fanPerc;
+        return m_fanController.getSpeedPerc(ch);
     };
+
+    FanController& getFanController()
+    {
+        return m_fanController;
+    }
 
     void lock() {
         xSemaphoreTakeRecursive(m_mutex, portMAX_DELAY);

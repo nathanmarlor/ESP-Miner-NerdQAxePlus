@@ -28,6 +28,7 @@ SRCS
     "boards/drivers/tmp451_mux.cpp"
     "history.cpp"
     "discord.cpp"
+    "fan_controller.cpp"
     "./pid/PID_v1_bc.cpp"
     "./pid/pid_timer.cpp"
     "./http_server/http_server.cpp"

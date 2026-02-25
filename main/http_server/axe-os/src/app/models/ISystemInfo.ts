@@ -67,6 +67,14 @@ export interface ISystemInfo {
     fanrpm: number,
     fanrpm2?: number,
     fanCount?: number,
+    fans?: {
+        mode: number,
+        manualSpeed: number,
+        overheatTemp: number,
+        rpm: number,
+        speedPerc: number,
+        pid: { targetTemp: number, p: number, i: number, d: number }
+    }[],
     coreVoltageActual: number,
     lastResetReason: string,
     jobInterval: number,

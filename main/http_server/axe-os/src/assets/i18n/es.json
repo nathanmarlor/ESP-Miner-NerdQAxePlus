@@ -398,7 +398,8 @@
     "MANUAL": "Manual",
     "AUTODETECT_POLARITY": "Detección Auto de Polaridad",
     "AUTODETECT_RECOMMENDED": "Recomendado",
-    "INVERT_POLARITY": "Invertir Polaridad"
+    "INVERT_POLARITY": "Invertir Polaridad",
+    "USE_FAN1_SETTINGS": "Usar configuración del Ventilador 1 (vinculado)"
   },
   "MISC": {
     "TITLE": "Configuración Miscelánea",

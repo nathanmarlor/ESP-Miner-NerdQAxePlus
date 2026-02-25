@@ -39,6 +39,7 @@ export class EditComponent implements OnInit {
   public defaultFrequency: number = 0;
   public defaultCoreVoltage: number = 0;
   public defaultVrFrequency: number = 0;
+  public fanCount: number = 1;
 
   public ecoFrequency: number = 0;
   public ecoCoreVoltage: number = 0;
@@ -109,6 +110,9 @@ export class EditComponent implements OnInit {
         this.asicVoltageValues = asic?.voltageOptions ?? [];
 
         this.defaultVrFrequency = info.defaultVrFrequency ?? undefined;
+
+        this.fanCount = info.fans?.length ?? info.fanCount ?? 1;
+        const fan1cfg = info.fans?.[1];
 
         const freqBase = this.asicFrequencyValues.map(v => {
           let suffix = '';
@@ -223,6 +227,14 @@ export class EditComponent implements OnInit {
             Validators.required,
           ]],
           otpEnabled: [info.otp],
+
+          fan1Mode: [fan1cfg?.mode ?? 3, [Validators.required]],
+          fan1ManualSpeed: [fan1cfg?.manualSpeed ?? 100, [Validators.min(0), Validators.max(100), Validators.required]],
+          fan1OverheatTemp: [fan1cfg?.overheatTemp ?? 80, [Validators.min(40), Validators.max(90), Validators.required]],
+          fan1PidTargetTemp: [fan1cfg?.pid?.targetTemp ?? 65, [Validators.min(30), Validators.max(80), Validators.required]],
+          fan1PidP: [fan1cfg?.pid?.p ?? 6, [Validators.min(0), Validators.max(100), Validators.required]],
+          fan1PidI: [fan1cfg?.pid?.i ?? 0.1, [Validators.min(0), Validators.max(10), Validators.required]],
+          fan1PidD: [fan1cfg?.pid?.d ?? 10, [Validators.min(0), Validators.max(100), Validators.required]],
         });
 
         this.stratum = info.stratum;
@@ -231,7 +243,12 @@ export class EditComponent implements OnInit {
           .pipe(startWith(this.form.controls['autofanspeed'].value))
           .subscribe(() => this.updatePIDFieldStates());
 
+        this.form.controls['fan1Mode'].valueChanges
+          .pipe(startWith(this.form.controls['fan1Mode'].value))
+          .subscribe(() => this.updateFan1FieldStates());
+
         this.updatePIDFieldStates();
+        this.updateFan1FieldStates();
       });
   }
 
@@ -267,6 +284,44 @@ export class EditComponent implements OnInit {
     }
   }
 
+  private updateFan1FieldStates(): void {
+    const mode = this.form.controls['fan1Mode'].value;
+    const enable = (ctrl: string) => this.form.controls[ctrl]?.enable({ emitEvent: false });
+    const disable = (ctrl: string) => this.form.controls[ctrl]?.disable({ emitEvent: false });
+
+    if (mode === 3) {
+      // LINKED — disable fan1-controls
+      disable('fan1ManualSpeed');
+      disable('fan1OverheatTemp');
+      disable('fan1PidTargetTemp');
+      disable('fan1PidP');
+      disable('fan1PidI');
+      disable('fan1PidD');
+    } else if (mode === 0) {
+      // MANUAL
+      enable('fan1ManualSpeed');
+      enable('fan1OverheatTemp');
+      disable('fan1PidTargetTemp');
+      disable('fan1PidP');
+      disable('fan1PidI');
+      disable('fan1PidD');
+    } else if (mode === 2) {
+      // PID
+      disable('fan1ManualSpeed');
+      enable('fan1OverheatTemp');
+      enable('fan1PidTargetTemp');
+      if (this.supportLevel >= 1) {
+        enable('fan1PidP');
+        enable('fan1PidI');
+        enable('fan1PidD');
+      } else {
+        disable('fan1PidP');
+        disable('fan1PidI');
+        disable('fan1PidD');
+      }
+    }
+  }
+
   public updateSystem(totp?: string) {
     const form = this.form.getRawValue();
 
@@ -284,6 +339,31 @@ export class EditComponent implements OnInit {
     if (form.fallbackStratumPassword === '*****') delete form.fallbackStratumPassword;
 
     form.stratum_keep = form.stratum_keep ? 1 : 0;
+
+    // fans[]-Array for the new per channel api
+    form.fans = [
+      {
+        mode: form.autofanspeed,
+        manualSpeed: form.manualFanSpeed,
+        overheatTemp: form.overheat_temp,
+        pid: { targetTemp: form.pidTargetTemp, p: form.pidP, i: form.pidI, d: form.pidD }
+      }
+    ];
+    if (this.fanCount > 1) {
+      form.fans.push({
+        mode: form.fan1Mode,
+        manualSpeed: form.fan1ManualSpeed,
+        overheatTemp: form.fan1OverheatTemp,
+        pid: { targetTemp: form.fan1PidTargetTemp, p: form.fan1PidP, i: form.fan1PidI, d: form.fan1PidD }
+      });
+    }
+    delete form.fan1Mode;
+    delete form.fan1ManualSpeed;
+    delete form.fan1OverheatTemp;
+    delete form.fan1PidTargetTemp;
+    delete form.fan1PidP;
+    delete form.fan1PidI;
+    delete form.fan1PidD;
 
     if (this.pendingTotp) {
       form.totp = this.pendingTotp;
@@ -363,6 +443,7 @@ export class EditComponent implements OnInit {
     this.voltageOptions = this.assembleDropdownOptions(voltBase, this.form.controls['coreVoltage'].value);
 
     this.updatePIDFieldStates();
+    this.updateFan1FieldStates();
   }
 
   public isVoltageTooHigh(): boolean {

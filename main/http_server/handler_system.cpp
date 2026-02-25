@@ -128,6 +128,39 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["fanrpm"]             = POWER_MANAGEMENT_MODULE.getFanRPM(0);
     doc["fanrpm2"]            = (board->getNumFans() > 1) ? POWER_MANAGEMENT_MODULE.getFanRPM(1) : 0;
     doc["fanCount"]           = board->getNumFans();
+
+    // Per-channel fan settings (new API; ch0 mirrors existing flat fields for compat)
+    {
+        PidSettings* pid0 = board->getPidSettings();
+        JsonArray fans = doc["fans"].to<JsonArray>();
+
+        JsonObject fan0 = fans.add<JsonObject>();
+        fan0["mode"]         = Config::getTempControlMode();
+        fan0["manualSpeed"]  = Config::getFanSpeed();
+        fan0["overheatTemp"] = Config::getOverheatTemp();
+        fan0["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(0);
+        fan0["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(0);
+        JsonObject pid0_obj  = fan0["pid"].to<JsonObject>();
+        pid0_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid0->targetTemp : -1;
+        pid0_obj["p"]          = (float) pid0->p / 100.0f;
+        pid0_obj["i"]          = (float) pid0->i / 100.0f;
+        pid0_obj["d"]          = (float) pid0->d / 100.0f;
+
+        if (board->getNumFans() > 1) {
+            JsonObject fan1 = fans.add<JsonObject>();
+            fan1["mode"]         = Config::getFan1Mode();
+            fan1["manualSpeed"]  = Config::getFan1Speed();
+            fan1["overheatTemp"] = Config::getFan1OverheatTemp();
+            fan1["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(1);
+            fan1["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(1);
+            JsonObject pid1_obj  = fan1["pid"].to<JsonObject>();
+            pid1_obj["targetTemp"] = (int) Config::getFan1PidTargetTemp();
+            pid1_obj["p"]          = (float) Config::getFan1PidP() / 100.0f;
+            pid1_obj["i"]          = (float) Config::getFan1PidI() / 100.0f;
+            pid1_obj["d"]          = (float) Config::getFan1PidD() / 100.0f;
+        }
+    }
+
     doc["lastpingrtt"]        = get_last_ping_rtt();
     doc["recentpingloss"]     = get_recent_ping_loss();
     doc["shutdown"]           = POWER_MANAGEMENT_MODULE.isShutdown();
@@ -333,6 +366,52 @@ esp_err_t PATCH_update_settings(httpd_req_t *req)
     }
 #endif
 
+    // Per-channel fan settings: fans[0] maps to ch0 NVS keys, fans[1] to ch1 NVS keys
+    if (doc["fans"].is<JsonArray>()) {
+        JsonArray fans = doc["fans"].as<JsonArray>();
+        int ch = 0;
+        for (JsonObject fan : fans) {
+            if (ch == 0) {
+                if (fan["mode"].is<uint16_t>())
+                    Config::setTempControlMode(fan["mode"].as<uint16_t>());
+                if (fan["manualSpeed"].is<uint16_t>())
+                    Config::setFanSpeed(fan["manualSpeed"].as<uint16_t>());
+                if (fan["overheatTemp"].is<uint16_t>())
+                    Config::setOverheatTemp(fan["overheatTemp"].as<uint16_t>());
+                if (fan["pid"].is<JsonObject>()) {
+                    JsonObject p = fan["pid"].as<JsonObject>();
+                    if (p["targetTemp"].is<uint16_t>())
+                        Config::setPidTargetTemp(p["targetTemp"].as<uint16_t>());
+                    if (p["p"].is<float>())
+                        Config::setPidP((uint16_t) (p["p"].as<float>() * 100.0f));
+                    if (p["i"].is<float>())
+                        Config::setPidI((uint16_t) (p["i"].as<float>() * 100.0f));
+                    if (p["d"].is<float>())
+                        Config::setPidD((uint16_t) (p["d"].as<float>() * 100.0f));
+                }
+            } else if (ch == 1) {
+                if (fan["mode"].is<uint16_t>())
+                    Config::setFan1Mode(fan["mode"].as<uint16_t>());
+                if (fan["manualSpeed"].is<uint16_t>())
+                    Config::setFan1Speed(fan["manualSpeed"].as<uint16_t>());
+                if (fan["overheatTemp"].is<uint16_t>())
+                    Config::setFan1OverheatTemp(fan["overheatTemp"].as<uint16_t>());
+                if (fan["pid"].is<JsonObject>()) {
+                    JsonObject p = fan["pid"].as<JsonObject>();
+                    if (p["targetTemp"].is<uint16_t>())
+                        Config::setFan1PidTargetTemp(p["targetTemp"].as<uint16_t>());
+                    if (p["p"].is<float>())
+                        Config::setFan1PidP((uint16_t) (p["p"].as<float>() * 100.0f));
+                    if (p["i"].is<float>())
+                        Config::setFan1PidI((uint16_t) (p["i"].as<float>() * 100.0f));
+                    if (p["d"].is<float>())
+                        Config::setFan1PidD((uint16_t) (p["d"].as<float>() * 100.0f));
+                }
+            }
+            ch++;
+        }
+    }
+
     // save stratum settings
     STRATUM_MANAGER->saveSettings(doc);
 
@@ -344,6 +423,9 @@ esp_err_t PATCH_update_settings(httpd_req_t *req)
     // Reload settings after update
     Board* board = SYSTEM_MODULE.getBoard();
     board->loadSettings();
+
+    // Reload fan controller settings (picks up both ch0 and ch1 changes)
+    POWER_MANAGEMENT_MODULE.getFanController().loadSettings();
 
     // reload settings of system module (and display)
     SYSTEM_MODULE.loadSettings();
