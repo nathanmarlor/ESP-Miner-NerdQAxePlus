@@ -46,6 +46,7 @@ public:
     const char *m_defaultTheme = "cosmic";
 
     PidSettings m_pidSettings;
+    PidSettings m_fan1PidSettings;
 
     // asic settings
     int m_asicJobIntervalMs;
@@ -300,6 +301,10 @@ public:
 
     PidSettings *getPidSettings() {
         return &m_pidSettings;
+    }
+
+    PidSettings *getFan1PidSettings() {
+        return &m_fan1PidSettings;
     }
 
     const std::vector<uint32_t>& getFrequencyOptions() const {

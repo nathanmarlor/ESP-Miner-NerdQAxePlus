@@ -84,14 +84,16 @@ void FanController::loadSettings()
     }
 
     if (m_numChannels > 1) {
-        // Channel 1: new NVS keys; default mode is LINKED (mirrors ch0).
+        // Channel 1: board-specific defaults via getFan1PidSettings().
+        PidSettings* bp1 = m_board->getFan1PidSettings();
+
         m_config[1].mode         = static_cast<Mode>(Config::getFan1Mode());
         m_config[1].manualSpeed  = Config::getFan1Speed();
         m_config[1].overheatTemp = Config::getFan1OverheatTemp();
-        m_config[1].pid.targetTemp = Config::getFan1PidTargetTemp();
-        m_config[1].pid.p          = Config::getFan1PidP();
-        m_config[1].pid.i          = Config::getFan1PidI();
-        m_config[1].pid.d          = Config::getFan1PidD();
+        m_config[1].pid.targetTemp = Config::getFan1PidTargetTemp(bp1->targetTemp);
+        m_config[1].pid.p          = Config::getFan1PidP(bp1->p);
+        m_config[1].pid.i          = Config::getFan1PidI(bp1->i);
+        m_config[1].pid.d          = Config::getFan1PidD(bp1->d);
 
         applyConfig(1);  // no-op if PID not yet created
     }

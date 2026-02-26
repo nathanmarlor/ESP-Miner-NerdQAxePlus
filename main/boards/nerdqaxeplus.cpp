@@ -59,6 +59,11 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_pidSettings.i = 10;  //   0.10
     m_pidSettings.d = 1000; // 10.00
 
+    m_fan1PidSettings.targetTemp = 65;  // target temp for vreg
+    m_fan1PidSettings.p = 600;  //   6.00
+    m_fan1PidSettings.i = 10;   //   0.10
+    m_fan1PidSettings.d = 1000; // 10.00
+
     m_asicMaxDifficulty = 1024;
     m_asicMinDifficulty = 256;
     m_asicMinDifficultyDualPool = 128;

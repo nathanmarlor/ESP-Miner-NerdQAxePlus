@@ -129,37 +129,6 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["fanrpm2"]            = (board->getNumFans() > 1) ? POWER_MANAGEMENT_MODULE.getFanRPM(1) : 0;
     doc["fanCount"]           = board->getNumFans();
 
-    // Per-channel fan settings (new API; ch0 mirrors existing flat fields for compat)
-    {
-        PidSettings* pid0 = board->getPidSettings();
-        JsonArray fans = doc["fans"].to<JsonArray>();
-
-        JsonObject fan0 = fans.add<JsonObject>();
-        fan0["mode"]         = Config::getTempControlMode();
-        fan0["manualSpeed"]  = Config::getFanSpeed();
-        fan0["overheatTemp"] = Config::getOverheatTemp();
-        fan0["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(0);
-        fan0["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(0);
-        JsonObject pid0_obj  = fan0["pid"].to<JsonObject>();
-        pid0_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid0->targetTemp : -1;
-        pid0_obj["p"]          = (float) pid0->p / 100.0f;
-        pid0_obj["i"]          = (float) pid0->i / 100.0f;
-        pid0_obj["d"]          = (float) pid0->d / 100.0f;
-
-        if (board->getNumFans() > 1) {
-            JsonObject fan1 = fans.add<JsonObject>();
-            fan1["mode"]         = Config::getFan1Mode();
-            fan1["manualSpeed"]  = Config::getFan1Speed();
-            fan1["overheatTemp"] = Config::getFan1OverheatTemp();
-            fan1["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(1);
-            fan1["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(1);
-            JsonObject pid1_obj  = fan1["pid"].to<JsonObject>();
-            pid1_obj["targetTemp"] = (int) Config::getFan1PidTargetTemp();
-            pid1_obj["p"]          = (float) Config::getFan1PidP() / 100.0f;
-            pid1_obj["i"]          = (float) Config::getFan1PidI() / 100.0f;
-            pid1_obj["d"]          = (float) Config::getFan1PidD() / 100.0f;
-        }
-    }
 
     doc["lastpingrtt"]        = get_last_ping_rtt();
     doc["recentpingloss"]     = get_recent_ping_loss();
@@ -203,6 +172,39 @@ esp_err_t GET_system_info(httpd_req_t *req)
     doc["pidP"]               = (float) pid->p / 100.0f;
     doc["pidI"]               = (float) pid->i / 100.0f;
     doc["pidD"]               = (float) pid->d / 100.0f;
+
+    // Per-channel fan settings (new API; ch0 mirrors existing flat fields for compat)
+    {
+        PidSettings* pid0 = board->getPidSettings();
+        JsonArray fans = doc["fans"].to<JsonArray>();
+
+        JsonObject fan0 = fans.add<JsonObject>();
+        fan0["mode"]         = Config::getTempControlMode();
+        fan0["manualSpeed"]  = Config::getFanSpeed();
+        fan0["overheatTemp"] = Config::getOverheatTemp();
+        fan0["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(0);
+        fan0["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(0);
+        JsonObject pid0_obj  = fan0["pid"].to<JsonObject>();
+        pid0_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid0->targetTemp : -1;
+        pid0_obj["p"]          = (float) pid0->p / 100.0f;
+        pid0_obj["i"]          = (float) pid0->i / 100.0f;
+        pid0_obj["d"]          = (float) pid0->d / 100.0f;
+
+        if (board->getNumFans() > 1) {
+            PidSettings* pid1 = board->getFan1PidSettings();
+            JsonObject fan1 = fans.add<JsonObject>();
+            fan1["mode"]         = Config::getFan1Mode();
+            fan1["manualSpeed"]  = Config::getFan1Speed();
+            fan1["overheatTemp"] = Config::getFan1OverheatTemp();
+            fan1["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(1);
+            fan1["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(1);
+            JsonObject pid1_obj  = fan1["pid"].to<JsonObject>();
+            pid1_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid1->targetTemp : -1;
+            pid1_obj["p"]          = (float) pid1->p / 100.0f;
+            pid1_obj["i"]          = (float) pid1->i / 100.0f;
+            pid1_obj["d"]          = (float) pid1->d / 100.0f;
+        }
+    }
 
     doc["hostname"]           = hostname;
     doc["ssid"]               = ssid;

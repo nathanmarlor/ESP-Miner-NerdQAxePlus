@@ -48,6 +48,11 @@ void Board::loadSettings()
     m_pidSettings.i = Config::getPidI(m_pidSettings.i);
     m_pidSettings.d = Config::getPidD(m_pidSettings.d);
 
+    m_fan1PidSettings.targetTemp = Config::getFan1PidTargetTemp(m_fan1PidSettings.targetTemp);
+    m_fan1PidSettings.p = Config::getFan1PidP(m_fan1PidSettings.p);
+    m_fan1PidSettings.i = Config::getFan1PidI(m_fan1PidSettings.i);
+    m_fan1PidSettings.d = Config::getFan1PidD(m_fan1PidSettings.d);
+
     ESP_LOGI(TAG, "ASIC Frequency: %dMHz", m_asicFrequency);
     ESP_LOGI(TAG, "ASIC voltage: %dmV", m_asicVoltageMillis);
     ESP_LOGI(TAG, "ASIC job interval: %dms", m_asicJobIntervalMs);
