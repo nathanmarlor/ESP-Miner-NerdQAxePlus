@@ -48,10 +48,10 @@ NerdQX::NerdQX() : NerdQaxePlus2() {
     m_absMaxAsicVoltageMillis = decode_m_absMaxAsicVoltageMillis(m_imax);
     m_initVoltageMillis = m_defaultAsicVoltageMillis;
 
-    m_pidSettings.targetTemp = 58;
-    m_pidSettings.p = 600;  //  6.00
-    m_pidSettings.i = 10;   //  0.10
-    m_pidSettings.d = 1000; // 10.00
+    m_pidSettings[0].targetTemp = 58;
+    m_pidSettings[0].p = 600;  //  6.00
+    m_pidSettings[0].i = 10;   //  0.10
+    m_pidSettings[0].d = 1000; // 10.00
 
     m_flipScreen = true;
     m_maxPin = 240.0;

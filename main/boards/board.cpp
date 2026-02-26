@@ -43,15 +43,12 @@ void Board::loadSettings()
     m_flipScreen = Config::isFlipScreenEnabled(m_flipScreen);
     m_vrFrequency = Config::getVrFrequency(m_defaultVrFrequency);
 
-    m_pidSettings.targetTemp = Config::getPidTargetTemp(m_pidSettings.targetTemp);
-    m_pidSettings.p = Config::getPidP(m_pidSettings.p);
-    m_pidSettings.i = Config::getPidI(m_pidSettings.i);
-    m_pidSettings.d = Config::getPidD(m_pidSettings.d);
-
-    m_fan1PidSettings.targetTemp = Config::getFan1PidTargetTemp(m_fan1PidSettings.targetTemp);
-    m_fan1PidSettings.p = Config::getFan1PidP(m_fan1PidSettings.p);
-    m_fan1PidSettings.i = Config::getFan1PidI(m_fan1PidSettings.i);
-    m_fan1PidSettings.d = Config::getFan1PidD(m_fan1PidSettings.d);
+    for (int ch = 0; ch < 2; ch++) {
+        m_pidSettings[ch].targetTemp = Config::getFanPidTargetTemp(ch, m_pidSettings[ch].targetTemp);
+        m_pidSettings[ch].p = Config::getFanPidP(ch, m_pidSettings[ch].p);
+        m_pidSettings[ch].i = Config::getFanPidI(ch, m_pidSettings[ch].i);
+        m_pidSettings[ch].d = Config::getFanPidD(ch, m_pidSettings[ch].d);
+    }
 
     ESP_LOGI(TAG, "ASIC Frequency: %dMHz", m_asicFrequency);
     ESP_LOGI(TAG, "ASIC voltage: %dmV", m_asicVoltageMillis);

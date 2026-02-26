@@ -175,34 +175,21 @@ esp_err_t GET_system_info(httpd_req_t *req)
 
     // Per-channel fan settings (new API; ch0 mirrors existing flat fields for compat)
     {
-        PidSettings* pid0 = board->getPidSettings();
         JsonArray fans = doc["fans"].to<JsonArray>();
-
-        JsonObject fan0 = fans.add<JsonObject>();
-        fan0["mode"]         = Config::getTempControlMode();
-        fan0["manualSpeed"]  = Config::getFanSpeed();
-        fan0["overheatTemp"] = Config::getOverheatTemp();
-        fan0["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(0);
-        fan0["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(0);
-        JsonObject pid0_obj  = fan0["pid"].to<JsonObject>();
-        pid0_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid0->targetTemp : -1;
-        pid0_obj["p"]          = (float) pid0->p / 100.0f;
-        pid0_obj["i"]          = (float) pid0->i / 100.0f;
-        pid0_obj["d"]          = (float) pid0->d / 100.0f;
-
-        if (board->getNumFans() > 1) {
-            PidSettings* pid1 = board->getFan1PidSettings();
-            JsonObject fan1 = fans.add<JsonObject>();
-            fan1["mode"]         = Config::getFan1Mode();
-            fan1["manualSpeed"]  = Config::getFan1Speed();
-            fan1["overheatTemp"] = Config::getFan1OverheatTemp();
-            fan1["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(1);
-            fan1["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(1);
-            JsonObject pid1_obj  = fan1["pid"].to<JsonObject>();
-            pid1_obj["targetTemp"] = board->isPIDAvailable() ? (int) pid1->targetTemp : -1;
-            pid1_obj["p"]          = (float) pid1->p / 100.0f;
-            pid1_obj["i"]          = (float) pid1->i / 100.0f;
-            pid1_obj["d"]          = (float) pid1->d / 100.0f;
+        int numFans = board->getNumFans();
+        for (int ch = 0; ch < numFans; ch++) {
+            PidSettings* fanPid = board->getPidSettings(ch);
+            JsonObject fan = fans.add<JsonObject>();
+            fan["mode"]         = Config::getFanMode(ch);
+            fan["manualSpeed"]  = Config::getFanManualSpeed(ch);
+            fan["overheatTemp"] = Config::getFanOverheatTemp(ch);
+            fan["rpm"]          = POWER_MANAGEMENT_MODULE.getFanRPM(ch);
+            fan["speedPerc"]    = POWER_MANAGEMENT_MODULE.getFanPerc(ch);
+            JsonObject pid_obj  = fan["pid"].to<JsonObject>();
+            pid_obj["targetTemp"] = board->isPIDAvailable() ? (int) fanPid->targetTemp : -1;
+            pid_obj["p"]          = (float) fanPid->p / 100.0f;
+            pid_obj["i"]          = (float) fanPid->i / 100.0f;
+            pid_obj["d"]          = (float) fanPid->d / 100.0f;
         }
     }
 
@@ -373,42 +360,23 @@ esp_err_t PATCH_update_settings(httpd_req_t *req)
         JsonArray fans = doc["fans"].as<JsonArray>();
         int ch = 0;
         for (JsonObject fan : fans) {
-            if (ch == 0) {
-                if (fan["mode"].is<uint16_t>())
-                    Config::setTempControlMode(fan["mode"].as<uint16_t>());
-                if (fan["manualSpeed"].is<uint16_t>())
-                    Config::setFanSpeed(fan["manualSpeed"].as<uint16_t>());
-                if (fan["overheatTemp"].is<uint16_t>())
-                    Config::setOverheatTemp(fan["overheatTemp"].as<uint16_t>());
-                if (fan["pid"].is<JsonObject>()) {
-                    JsonObject p = fan["pid"].as<JsonObject>();
-                    if (p["targetTemp"].is<uint16_t>())
-                        Config::setPidTargetTemp(p["targetTemp"].as<uint16_t>());
-                    if (p["p"].is<float>())
-                        Config::setPidP((uint16_t) (p["p"].as<float>() * 100.0f));
-                    if (p["i"].is<float>())
-                        Config::setPidI((uint16_t) (p["i"].as<float>() * 100.0f));
-                    if (p["d"].is<float>())
-                        Config::setPidD((uint16_t) (p["d"].as<float>() * 100.0f));
-                }
-            } else if (ch == 1) {
-                if (fan["mode"].is<uint16_t>())
-                    Config::setFan1Mode(fan["mode"].as<uint16_t>());
-                if (fan["manualSpeed"].is<uint16_t>())
-                    Config::setFan1Speed(fan["manualSpeed"].as<uint16_t>());
-                if (fan["overheatTemp"].is<uint16_t>())
-                    Config::setFan1OverheatTemp(fan["overheatTemp"].as<uint16_t>());
-                if (fan["pid"].is<JsonObject>()) {
-                    JsonObject p = fan["pid"].as<JsonObject>();
-                    if (p["targetTemp"].is<uint16_t>())
-                        Config::setFan1PidTargetTemp(p["targetTemp"].as<uint16_t>());
-                    if (p["p"].is<float>())
-                        Config::setFan1PidP((uint16_t) (p["p"].as<float>() * 100.0f));
-                    if (p["i"].is<float>())
-                        Config::setFan1PidI((uint16_t) (p["i"].as<float>() * 100.0f));
-                    if (p["d"].is<float>())
-                        Config::setFan1PidD((uint16_t) (p["d"].as<float>() * 100.0f));
-                }
+            if (ch > 1) break;
+            if (fan["mode"].is<uint16_t>())
+                Config::setFanMode(ch, fan["mode"].as<uint16_t>());
+            if (fan["manualSpeed"].is<uint16_t>())
+                Config::setFanManualSpeed(ch, fan["manualSpeed"].as<uint16_t>());
+            if (fan["overheatTemp"].is<uint16_t>())
+                Config::setFanOverheatTemp(ch, fan["overheatTemp"].as<uint16_t>());
+            if (fan["pid"].is<JsonObject>()) {
+                JsonObject p = fan["pid"].as<JsonObject>();
+                if (p["targetTemp"].is<uint16_t>())
+                    Config::setFanPidTargetTemp(ch, p["targetTemp"].as<uint16_t>());
+                if (p["p"].is<float>())
+                    Config::setFanPidP(ch, (uint16_t) (p["p"].as<float>() * 100.0f));
+                if (p["i"].is<float>())
+                    Config::setFanPidI(ch, (uint16_t) (p["i"].as<float>() * 100.0f));
+                if (p["d"].is<float>())
+                    Config::setFanPidD(ch, (uint16_t) (p["d"].as<float>() * 100.0f));
             }
             ch++;
         }

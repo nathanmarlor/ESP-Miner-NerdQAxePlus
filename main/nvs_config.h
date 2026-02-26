@@ -174,23 +174,67 @@ namespace Config {
     inline void setPidI(uint16_t value) { nvs_config_set_u16(NVS_CONFIG_PID_I, value); }
     inline void setPidD(uint16_t value) { nvs_config_set_u16(NVS_CONFIG_PID_D, value); }
 
-    // Fan channel 1 getters (default mode=3/linked, overheat=80°C, targetTemp=65°C, p/i/d same as NerdQAxe defaults)
-    inline uint16_t getFan1Speed()         { return nvs_config_get_u16(NVS_CONFIG_FAN1_SPEED,    100); }
-    inline uint16_t getFan1Mode()          { return nvs_config_get_u16(NVS_CONFIG_FAN1_MODE,      3);   }
-    inline uint16_t getFan1OverheatTemp()  { return nvs_config_get_u16(NVS_CONFIG_FAN1_OVERHEAT,  80);  }
-    inline uint16_t getFan1PidTargetTemp(uint16_t d)   { return nvs_config_get_u16(NVS_CONFIG_FAN1_PID_TEMP, d);   }
-    inline uint16_t getFan1PidP(uint16_t d)          { return nvs_config_get_u16(NVS_CONFIG_FAN1_PID_P,    d);   }
-    inline uint16_t getFan1PidI(uint16_t d)           { return nvs_config_get_u16(NVS_CONFIG_FAN1_PID_I,    d);   }
-    inline uint16_t getFan1PidD(uint16_t d)         { return nvs_config_get_u16(NVS_CONFIG_FAN1_PID_D,    d);   }
+    // Indexed fan-channel getters (ch=0 → ch0 NVS keys, ch=1 → fan1 NVS keys)
+    // ch0 defaults: mode=CONFIG_AUTO_FAN_SPEED_VALUE, speed=CONFIG_FAN_SPEED, overheat=CONFIG_OVERHEAT_TEMP
+    // ch1 defaults: mode=3 (linked), speed=100%, overheat=80°C
+    inline uint16_t getFanMode(int ch) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_AUTO_FAN_SPEED, CONFIG_AUTO_FAN_SPEED_VALUE)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_MODE, 3);
+    }
+    inline uint16_t getFanManualSpeed(int ch) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_FAN_SPEED, CONFIG_FAN_SPEED)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_SPEED, 100);
+    }
+    inline uint16_t getFanOverheatTemp(int ch) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_OVERHEAT_TEMP, CONFIG_OVERHEAT_TEMP)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_OVERHEAT, 80);
+    }
+    inline uint16_t getFanPidTargetTemp(int ch, uint16_t d) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_PID_TARGET_TEMP, d)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_PID_TEMP, d);
+    }
+    inline uint16_t getFanPidP(int ch, uint16_t d) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_PID_P, d)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_PID_P, d);
+    }
+    inline uint16_t getFanPidI(int ch, uint16_t d) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_PID_I, d)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_PID_I, d);
+    }
+    inline uint16_t getFanPidD(int ch, uint16_t d) {
+        return ch == 0 ? nvs_config_get_u16(NVS_CONFIG_PID_D, d)
+                       : nvs_config_get_u16(NVS_CONFIG_FAN1_PID_D, d);
+    }
 
-    // Fan channel 1 setters
-    inline void setFan1Speed(uint16_t v)         { nvs_config_set_u16(NVS_CONFIG_FAN1_SPEED,    v); }
-    inline void setFan1Mode(uint16_t v)          { nvs_config_set_u16(NVS_CONFIG_FAN1_MODE,      v); }
-    inline void setFan1OverheatTemp(uint16_t v)  { nvs_config_set_u16(NVS_CONFIG_FAN1_OVERHEAT,  v); }
-    inline void setFan1PidTargetTemp(uint16_t v) { nvs_config_set_u16(NVS_CONFIG_FAN1_PID_TEMP,  v); }
-    inline void setFan1PidP(uint16_t v)          { nvs_config_set_u16(NVS_CONFIG_FAN1_PID_P,     v); }
-    inline void setFan1PidI(uint16_t v)          { nvs_config_set_u16(NVS_CONFIG_FAN1_PID_I,     v); }
-    inline void setFan1PidD(uint16_t v)          { nvs_config_set_u16(NVS_CONFIG_FAN1_PID_D,     v); }
+    // Indexed fan-channel setters
+    inline void setFanMode(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_AUTO_FAN_SPEED, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_MODE, v);
+    }
+    inline void setFanManualSpeed(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_FAN_SPEED, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_SPEED, v);
+    }
+    inline void setFanOverheatTemp(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_OVERHEAT_TEMP, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_OVERHEAT, v);
+    }
+    inline void setFanPidTargetTemp(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_PID_TARGET_TEMP, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_PID_TEMP, v);
+    }
+    inline void setFanPidP(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_PID_P, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_PID_P, v);
+    }
+    inline void setFanPidI(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_PID_I, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_PID_I, v);
+    }
+    inline void setFanPidD(int ch, uint16_t v) {
+        if (ch == 0) nvs_config_set_u16(NVS_CONFIG_PID_D, v);
+        else         nvs_config_set_u16(NVS_CONFIG_FAN1_PID_D, v);
+    }
 
     // ---- uint64_t Getters ----
     inline uint64_t getBestDiff() { return nvs_config_get_u64(NVS_CONFIG_BEST_DIFF, 0); }

@@ -54,15 +54,15 @@ NerdQaxePlus::NerdQaxePlus() : Board() {
     m_minCurrentA = 0.0f;
     m_maxCurrentA = 6.0f;
 
-    m_pidSettings.targetTemp = 55;
-    m_pidSettings.p = 600; //   6.00
-    m_pidSettings.i = 10;  //   0.10
-    m_pidSettings.d = 1000; // 10.00
+    m_pidSettings[0].targetTemp = 55;
+    m_pidSettings[0].p = 600; //   6.00
+    m_pidSettings[0].i = 10;  //   0.10
+    m_pidSettings[0].d = 1000; // 10.00
 
-    m_fan1PidSettings.targetTemp = 65;  // target temp for vreg
-    m_fan1PidSettings.p = 600;  //   6.00
-    m_fan1PidSettings.i = 10;   //   0.10
-    m_fan1PidSettings.d = 1000; // 10.00
+    m_pidSettings[1].targetTemp = 65;  // target temp for vreg
+    m_pidSettings[1].p = 600;  //   6.00
+    m_pidSettings[1].i = 10;   //   0.10
+    m_pidSettings[1].d = 1000; // 10.00
 
     m_asicMaxDifficulty = 1024;
     m_asicMinDifficulty = 256;

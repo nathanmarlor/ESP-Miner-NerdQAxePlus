@@ -67,35 +67,18 @@ void FanController::init(Board* board, int sampleTimeMs)
 
 void FanController::loadSettings()
 {
-    if (m_numChannels > 0) {
-        // Channel 0: use existing NVS keys (backwards compatible).
-        // PID settings fall back to board defaults via board->getPidSettings().
-        PidSettings* bp = m_board->getPidSettings();
+    for (int ch = 0; ch < m_numChannels; ch++) {
+        PidSettings* bp = m_board->getPidSettings(ch);
 
-        m_config[0].mode         = static_cast<Mode>(Config::getTempControlMode());
-        m_config[0].manualSpeed  = Config::getFanSpeed();
-        m_config[0].overheatTemp = Config::getOverheatTemp();
-        m_config[0].pid.targetTemp = Config::getPidTargetTemp(bp->targetTemp);
-        m_config[0].pid.p          = Config::getPidP(bp->p);
-        m_config[0].pid.i          = Config::getPidI(bp->i);
-        m_config[0].pid.d          = Config::getPidD(bp->d);
+        m_config[ch].mode         = static_cast<Mode>(Config::getFanMode(ch));
+        m_config[ch].manualSpeed  = Config::getFanManualSpeed(ch);
+        m_config[ch].overheatTemp = Config::getFanOverheatTemp(ch);
+        m_config[ch].pid.targetTemp = Config::getFanPidTargetTemp(ch, bp->targetTemp);
+        m_config[ch].pid.p          = Config::getFanPidP(ch, bp->p);
+        m_config[ch].pid.i          = Config::getFanPidI(ch, bp->i);
+        m_config[ch].pid.d          = Config::getFanPidD(ch, bp->d);
 
-        applyConfig(0);  // no-op if PID not yet created
-    }
-
-    if (m_numChannels > 1) {
-        // Channel 1: board-specific defaults via getFan1PidSettings().
-        PidSettings* bp1 = m_board->getFan1PidSettings();
-
-        m_config[1].mode         = static_cast<Mode>(Config::getFan1Mode());
-        m_config[1].manualSpeed  = Config::getFan1Speed();
-        m_config[1].overheatTemp = Config::getFan1OverheatTemp();
-        m_config[1].pid.targetTemp = Config::getFan1PidTargetTemp(bp1->targetTemp);
-        m_config[1].pid.p          = Config::getFan1PidP(bp1->p);
-        m_config[1].pid.i          = Config::getFan1PidI(bp1->i);
-        m_config[1].pid.d          = Config::getFan1PidD(bp1->d);
-
-        applyConfig(1);  // no-op if PID not yet created
+        applyConfig(ch);  // no-op if PID not yet created
     }
 }
 

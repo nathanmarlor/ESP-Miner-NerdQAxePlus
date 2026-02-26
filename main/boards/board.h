@@ -45,8 +45,9 @@ public:
     bool m_hasHashCounter;
     const char *m_defaultTheme = "cosmic";
 
-    PidSettings m_pidSettings;
-    PidSettings m_fan1PidSettings;
+    // Index 0: ASIC/chip-temp PID (fan 0).  Index 1: VR-temp PID (fan 1).
+    // ch1 base defaults (overridden in subclass ctors where needed): 65°C, p=6, i=0.1, d=10.
+    PidSettings m_pidSettings[2] = {{}, {65, 600, 10, 1000}};
 
     // asic settings
     int m_asicJobIntervalMs;
@@ -299,12 +300,8 @@ public:
         return m_fanInvertPolarity;
     }
 
-    PidSettings *getPidSettings() {
-        return &m_pidSettings;
-    }
-
-    PidSettings *getFan1PidSettings() {
-        return &m_fan1PidSettings;
+    PidSettings *getPidSettings(int ch = 0) {
+        return &m_pidSettings[ch];
     }
 
     const std::vector<uint32_t>& getFrequencyOptions() const {

@@ -21,10 +21,10 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_absMaxAsicVoltageMillis = 1400;
     m_initVoltageMillis = 1200;
 
-    m_pidSettings.targetTemp = 55;
-    m_pidSettings.p = 600;  //  6.00
-    m_pidSettings.i = 10;   //  0.10
-    m_pidSettings.d = 1000; // 10.00
+    m_pidSettings[0].targetTemp = 55;
+    m_pidSettings[0].p = 600;  //  6.00
+    m_pidSettings[0].i = 10;   //  0.10
+    m_pidSettings[0].d = 1000; // 10.00
 
     m_maxPin = 100.0;
     m_minPin = 52.0;
