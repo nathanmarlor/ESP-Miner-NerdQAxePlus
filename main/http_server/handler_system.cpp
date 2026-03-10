@@ -180,6 +180,7 @@ esp_err_t GET_system_info(httpd_req_t *req)
         for (int ch = 0; ch < numFans; ch++) {
             PidSettings* fanPid = board->getPidSettings(ch);
             JsonObject fan = fans.add<JsonObject>();
+            fan["label"]        = board->getFanLabel(ch);
             fan["mode"]         = Config::getFanMode(ch);
             fan["manualSpeed"]  = Config::getFanManualSpeed(ch);
             fan["overheatTemp"] = Config::getFanOverheatTemp(ch);

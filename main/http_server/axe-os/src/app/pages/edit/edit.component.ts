@@ -40,6 +40,7 @@ export class EditComponent implements OnInit {
   public defaultCoreVoltage: number = 0;
   public defaultVrFrequency: number = 0;
   public fanCount: number = 1;
+  public fanLabels: string[] = ['Fan 1', 'Fan 2'];
 
   public ecoFrequency: number = 0;
   public ecoCoreVoltage: number = 0;
@@ -112,6 +113,7 @@ export class EditComponent implements OnInit {
         this.defaultVrFrequency = info.defaultVrFrequency ?? undefined;
 
         this.fanCount = info.fans?.length ?? info.fanCount ?? 1;
+        this.fanLabels = info.fans?.map((f, i) => f.label || `Fan ${i + 1}`) ?? ['Fan 1', 'Fan 2'];
         const fan1cfg = info.fans?.[1];
 
         const freqBase = this.asicFrequencyValues.map(v => {

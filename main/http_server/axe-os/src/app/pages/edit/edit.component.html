@@ -285,7 +285,7 @@
             <nb-tabset>
 
                 <!-- ── Fan 1 ─────────────────────────────────────────── -->
-                <nb-tab tabTitle="Fan 1">
+                <nb-tab tabTitle="{{ fanLabels[0] }}">
                     <nb-card-body>
                         <div class="form-row">
                             <label class="form-label">{{ 'FAN.CONTROLLER' | translate }}:</label>
@@ -359,7 +359,7 @@
                 </nb-tab>
 
                 <!-- ── Fan 2 (nur bei 2-Lüfter-Boards) ───────────────── -->
-                <nb-tab tabTitle="Fan 2" *ngIf="fanCount > 1">
+                <nb-tab tabTitle="{{ fanLabels[1] }}" *ngIf="fanCount > 1">
                     <nb-card-body>
 
                         <!-- Linked-Checkbox -->

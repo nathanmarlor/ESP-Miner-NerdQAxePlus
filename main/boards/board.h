@@ -49,6 +49,9 @@ public:
     // ch1 base defaults (overridden in subclass ctors where needed): 65°C, p=6, i=0.1, d=10.
     PidSettings m_pidSettings[2] = {{}, {65, 600, 10, 1000}};
 
+    // Human-readable connector labels shown in the web UI
+    const char* m_fanLabels[2] = {"Fan 1", "Fan 2"};
+
     // asic settings
     int m_asicJobIntervalMs;
     int m_asicFrequency;
@@ -302,6 +305,11 @@ public:
 
     PidSettings *getPidSettings(int ch = 0) {
         return &m_pidSettings[ch];
+    }
+
+    const char* getFanLabel(int ch) const {
+        if (ch < 0 || ch >= m_numFans) return "";
+        return m_fanLabels[ch];
     }
 
     const std::vector<uint32_t>& getFrequencyOptions() const {

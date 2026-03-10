@@ -68,6 +68,7 @@ export interface ISystemInfo {
     fanrpm2?: number,
     fanCount?: number,
     fans?: {
+        label?: string,
         mode: number,
         manualSpeed: number,
         overheatTemp: number,
