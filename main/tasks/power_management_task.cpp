@@ -354,7 +354,7 @@ void PowerManagementTask::task()
 
         if (asic_overheat_temp && (m_chipTempMax > asic_overheat_temp || m_vrTemp > vr_maxTemp)) {
             uint32_t status = ((uint32_t) m_chipTempMax << 24) | ((uint32_t) asic_overheat_temp << 16) |
-                              ((uint32_t) m_vrTemp << 8) | ((uint32_t) vr_maxTemp << 8);
+                              ((uint32_t) m_vrTemp << 8) | ((uint32_t) vr_maxTemp);
 
             // over temperature
             SYSTEM_MODULE.setBoardError(Board::Error::TEMP_FAULT, status);

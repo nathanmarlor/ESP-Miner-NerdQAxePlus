@@ -145,7 +145,8 @@ class System {
     }
     void setWifiStatus(const char *wifiStatus)
     {
-        strncpy(m_wifiStatus, wifiStatus, sizeof(m_wifiStatus));
+        strncpy(m_wifiStatus, wifiStatus, sizeof(m_wifiStatus) - 1);
+        m_wifiStatus[sizeof(m_wifiStatus) - 1] = '\0';
     }
 
     void setAPState(bool state)
@@ -160,7 +161,8 @@ class System {
 
     void setSsid(const char *ssid)
     {
-        strncpy(m_ssid, ssid, sizeof(m_ssid));
+        strncpy(m_ssid, ssid, sizeof(m_ssid) - 1);
+        m_ssid[sizeof(m_ssid) - 1] = '\0';
     }
 
     // Startup status setter

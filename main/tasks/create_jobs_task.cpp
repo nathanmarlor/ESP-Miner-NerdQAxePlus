@@ -255,17 +255,26 @@ void *create_jobs_task(void *pvParameters)
             // generate coinbase tx
             int coinbase_tx_len = strlen(mi->current_job->coinbase_1) + strlen(mi->extranonce_str) + strlen(extranonce_2_str) +
                                   strlen(mi->current_job->coinbase_2);
-            char coinbase_tx[coinbase_tx_len + 1]; // +1 zero termination
-            snprintf(coinbase_tx, sizeof(coinbase_tx), "%s%s%s%s", mi->current_job->coinbase_1, mi->extranonce_str,
+            char *coinbase_tx = (char *) malloc(coinbase_tx_len + 1); // +1 zero termination
+            if (!coinbase_tx) {
+                ESP_LOGE(TAG, "Failed to allocate coinbase_tx");
+                continue;
+            }
+            snprintf(coinbase_tx, coinbase_tx_len + 1, "%s%s%s%s", mi->current_job->coinbase_1, mi->extranonce_str,
                      extranonce_2_str, mi->current_job->coinbase_2);
 
             // calculate merkle root
             char merkle_root[65];
             calculate_merkle_root_hash(coinbase_tx, mi->current_job->_merkle_branches, mi->current_job->n_merkle_branches,
                                        merkle_root);
+            free(coinbase_tx);
 
             // we need malloc because we will save it in the job array
             next_job = (bm_job *) malloc(sizeof(bm_job));
+            if (!next_job) {
+                ESP_LOGE(TAG, "Failed to allocate bm_job");
+                continue;
+            }
             construct_bm_job(mi->current_job, merkle_root, mi->version_mask, next_job);
             next_job->jobid = strdup(mi->current_job->job_id);
             next_job->extranonce2 = strdup(extranonce_2_str);

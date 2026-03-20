@@ -275,7 +275,7 @@ int Asic::count_asics() {
     int chip_counter = 0;
     while (SERIAL_rx(buf, sizeof(buf), 1000) > 0) {
 //        ESP_LOG_BUFFER_HEX(TAG, buf, sizeof(buf));
-        if (!strncmp((char *) getChipId(), (char *) buf, 6)) {
+        if (!memcmp(getChipId(), buf, 6)) {
             chip_counter++;
             ESP_LOGI(TAG, "found asic #%d", chip_counter);
         } else {

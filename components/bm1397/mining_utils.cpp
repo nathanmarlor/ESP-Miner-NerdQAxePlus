@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "esp_log.h"
 #include "mbedtls/sha256.h"
 
 #ifndef bswap_16
@@ -154,8 +155,8 @@ void swap_endian_words_bin(uint8_t *data, uint8_t *output, size_t data_length)
 {
     // Ensure the binary data length is a multiple of 4 bytes (32 bits)
     if (data_length % 4 != 0) {
-        fprintf(stderr, "Must be 4-byte word aligned\n");
-        exit(EXIT_FAILURE);
+        ESP_LOGE("mining_utils", "swap_endian_words_bin: data length must be 4-byte aligned");
+        return;
     }
 
     uint32_t *src = (uint32_t *) data;
@@ -179,8 +180,8 @@ void swap_endian_words(const char *hex_words, uint8_t *output)
 {
     size_t hex_length = strlen(hex_words);
     if (hex_length % 8 != 0) {
-        fprintf(stderr, "Must be 4-byte word aligned\n");
-        exit(EXIT_FAILURE);
+        ESP_LOGE("mining_utils", "swap_endian_words: hex length must be 8-char aligned");
+        return;
     }
 
     size_t binary_length = hex_length / 2;
@@ -211,20 +212,21 @@ static const double bits64 = 18446744073709551616.0;
 /* Converts a little endian 256 bit value to a double */
 double le256todouble(const void *target)
 {
-    uint64_t *data64;
+    uint64_t val;
     double dcut64;
+    const uint8_t *p = (const uint8_t *) target;
 
-    data64 = (uint64_t *) (target + 24);
-    dcut64 = *data64 * bits192;
+    memcpy(&val, p + 24, sizeof(val));
+    dcut64 = val * bits192;
 
-    data64 = (uint64_t *) (target + 16);
-    dcut64 += *data64 * bits128;
+    memcpy(&val, p + 16, sizeof(val));
+    dcut64 += val * bits128;
 
-    data64 = (uint64_t *) (target + 8);
-    dcut64 += *data64 * bits64;
+    memcpy(&val, p + 8, sizeof(val));
+    dcut64 += val * bits64;
 
-    data64 = (uint64_t *) (target);
-    dcut64 += *data64;
+    memcpy(&val, p, sizeof(val));
+    dcut64 += val;
 
     return dcut64;
 }

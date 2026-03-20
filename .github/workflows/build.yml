@@ -55,6 +55,14 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y gh
 
+    - name: Check if R2 config is available
+      run: |
+        if [ -n "${{ secrets.RCLONE_CONF }}" ]; then
+          echo "HAS_RCLONE_CONF=true" >> $GITHUB_ENV
+        else
+          echo "HAS_RCLONE_CONF=false" >> $GITHUB_ENV
+        fi
+
     - name: Check if release exists
       id: check_release
       run: |
@@ -176,10 +184,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install rclone
+      if: env.HAS_RCLONE_CONF == 'true'
       run: |
         curl -fsSL https://rclone.org/install.sh | sudo bash
 
     - name: Upload to Cloudflare R2 using rclone
+      if: env.HAS_RCLONE_CONF == 'true'
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       run: |

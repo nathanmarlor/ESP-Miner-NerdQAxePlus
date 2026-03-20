@@ -198,14 +198,32 @@ bool StratumApi::parseMethods(JsonDocument &doc, const char *method_str, Stratum
     case MINING_NOTIFY: {
         ESP_LOGI(TAG, "mining notify");
         mining_notify *new_work = (mining_notify *) MALLOC(sizeof(mining_notify));
+        if (!new_work) {
+            ESP_LOGE(TAG, "Failed to allocate mining_notify");
+            return false;
+        }
 
         JsonArray params = doc["params"].as<JsonArray>();
 
-        new_work->job_id = strdup(params[0].as<const char *>());
-        hex2bin(params[1].as<const char *>(), new_work->_prev_block_hash, HASH_SIZE);
+        const char *p0 = params[0].as<const char *>();
+        const char *p1 = params[1].as<const char *>();
+        const char *p2 = params[2].as<const char *>();
+        const char *p3 = params[3].as<const char *>();
+        const char *p5 = params[5].as<const char *>();
+        const char *p6 = params[6].as<const char *>();
+        const char *p7 = params[7].as<const char *>();
 
-        new_work->coinbase_1 = strdup(params[2].as<const char *>());
-        new_work->coinbase_2 = strdup(params[3].as<const char *>());
+        if (!p0 || !p1 || !p2 || !p3 || !p5 || !p6 || !p7) {
+            ESP_LOGE(TAG, "mining.notify: missing or invalid params");
+            safe_free(new_work);
+            return false;
+        }
+
+        new_work->job_id = strdup(p0);
+        hex2bin(p1, new_work->_prev_block_hash, HASH_SIZE);
+
+        new_work->coinbase_1 = strdup(p2);
+        new_work->coinbase_2 = strdup(p3);
 
         JsonArray merkle_branch = params[4].as<JsonArray>();
         new_work->n_merkle_branches = merkle_branch.size();
@@ -220,9 +238,9 @@ bool StratumApi::parseMethods(JsonDocument &doc, const char *method_str, Stratum
             hex2bin(merkle_branch[i].as<const char *>(), new_work->_merkle_branches[i], HASH_SIZE);
         }
 
-        new_work->version = strtoul(params[5].as<const char *>(), NULL, 16);
-        new_work->target = strtoul(params[6].as<const char *>(), NULL, 16);
-        new_work->ntime = strtoul(params[7].as<const char *>(), NULL, 16);
+        new_work->version = strtoul(p5, NULL, 16);
+        new_work->target = strtoul(p6, NULL, 16);
+        new_work->ntime = strtoul(p7, NULL, 16);
 
         message->mining_notification = new_work;
 
@@ -413,17 +431,24 @@ bool StratumApi::send(StratumTransport *transport, const char *message)
 
     const char *p = message;
     size_t remaining = strlen(message);
+    int retries = 0;
+    const int max_retries = 500; // 5 seconds max at 10ms per retry
 
     while (remaining > 0) {
         int n = transport->send(p, remaining);
         if (n > 0) {
             p += n;
             remaining -= (size_t)n;
+            retries = 0;
             continue;
         }
 
         // n == 0 means "no progress"; treat like a retryable condition.
         if (n == 0 || (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))) {
+            if (++retries >= max_retries) {
+                ESP_LOGE(TAG, "Send stalled: no progress after %d retries", max_retries);
+                return false;
+            }
             vTaskDelay(pdMS_TO_TICKS(10));
             continue;
         }

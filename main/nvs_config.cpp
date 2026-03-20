@@ -17,7 +17,7 @@ char *nvs_config_get_string(const char *key, const char *default_value)
     esp_err_t err;
     err = nvs_open(NVS_CONFIG_NAMESPACE, NVS_READONLY, &handle);
     if (err != ESP_OK) {
-        return strdup(default_value);
+        return default_value ? strdup(default_value) : NULL;
     }
 
     size_t size = 0;
@@ -25,16 +25,20 @@ char *nvs_config_get_string(const char *key, const char *default_value)
 
     if (err != ESP_OK) {
         nvs_close(handle);
-        return strdup(default_value);
+        return default_value ? strdup(default_value) : NULL;
     }
 
     char *out = (char *) malloc(size);
+    if (!out) {
+        nvs_close(handle);
+        return default_value ? strdup(default_value) : NULL;
+    }
     err = nvs_get_str(handle, key, out, &size);
 
     if (err != ESP_OK) {
         free(out);
         nvs_close(handle);
-        return strdup(default_value);
+        return default_value ? strdup(default_value) : NULL;
     }
 
     nvs_close(handle);
